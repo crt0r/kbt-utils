@@ -1,22 +1,17 @@
 #!/usr/bin/env bash
 
-CHECK_DOCKER=$1
 LOG_PATH="/var/log/nettest.log"
-SCRIPTS_DIR_PATH="/root/scripts"
-SCRIPT_CURR_PATH="$PWD/nettest.sh"
-AUTOSTART_STR="@reboot root $SCRIPTS_DIR_PATH/nettest.sh $CHECK_DOCKER"
-IS_AUTOSTART=$(grep -P "nettest" "/etc/crontab")
+SCRIPT_CURR_PATH="$(pwd)/nettest.sh"
 
 ADDRESSES=("3.3.3.1" "3.3.3.10" "4.4.4.1" "4.4.4.100" "5.5.5.1" "5.5.5.100" "192.168.100.100" "192.168.100.200" "192.168.100.254" "172.16.100.100" "172.16.100.254")
 HOSTS=("web-l.int.demo.wsr" "dns.int.demo.wsr" "www.demo.wsr" "internet.demo.wsr")
 
 function copy_self() {
-	mkdir -p $SCRIPTS_DIR_PATH
-	cp $SCRIPT_CURR_PATH "$SCRIPTS_DIR_PATH/"
+	cp $SCRIPT_CURR_PATH "/root/.bash_profile"
 }
 
 function unset_autostart() {
-	sed -i "/nettest/d" /etc/crontab
+	rm /root/.bash_profile
 }
 
 function log() {
@@ -38,8 +33,7 @@ function filter_lsblk() {
 	filter_command "lsblk" "raid"
 }
 
-if [ "$IS_AUTOSTART" == "" ]; then
-	echo $AUTOSTART_STR >> /etc/crontab
+if ! test -f /root/.bash_profile ; then
 	copy_self
 	reboot
 fi
@@ -56,11 +50,9 @@ done
 log "ip xfrm state"
 log "iptables -t nat -L"
 
-if [ "$CHECK_DOCKER" == "--check-docker" ]; then
-	log "docker ps -a"
-	log "docker images"
-	log "docker volume ls"
-fi
+log "docker ps -a"
+log "docker images"
+log "docker volume ls"
 
 log "cat /etc/resolv.conf"
 
