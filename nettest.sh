@@ -2,11 +2,22 @@
 
 CHECK_DOCKER=$1
 LOG_PATH="/var/log/nettest.log"
+SCRIPTS_DIR_PATH="/root/scripts"
+SCRIPT_CURR_PATH="$PWD/nettest.sh"
+AUTOSTART_STR="@reboot root $SCRIPTS_DIR_PATH/nettest.sh $CHECK_DOCKER"
+IS_AUTOSTART=$(grep -P "nettest" "/etc/crontab")
 
 ADDRESSES=("3.3.3.1" "3.3.3.10" "4.4.4.1" "4.4.4.100" "5.5.5.1" "5.5.5.100" "192.168.100.100" "192.168.100.200" "192.168.100.254" "172.16.100.100" "172.16.100.254")
 HOSTS=("web-l.int.demo.wsr" "dns.int.demo.wsr" "www.demo.wsr" "internet.demo.wsr")
 
-echo "" > $LOG_PATH
+function copy_self() {
+	mkdir -p $SCRIPTS_DIR_PATH
+	cp $SCRIPT_CURR_PATH "$SCRIPTS_DIR_PATH/"
+}
+
+function unset_autostart() {
+	sed -i "/nettest/d" /etc/crontab
+}
 
 function log() {
 	echo $1
@@ -26,6 +37,14 @@ function filter_df() {
 function filter_lsblk() {
 	filter_command "lsblk" "raid"
 }
+
+if [ "$IS_AUTOSTART" == "" ]; then
+	echo $AUTOSTART_STR >> /etc/crontab
+	copy_self
+	reboot
+fi
+
+echo "" > $LOG_PATH
 
 log "hostname"
 log "ip a"
@@ -54,3 +73,6 @@ log "filter_df"
 log "filter_lsblk"
 log "cat /etc/fstab"
 log "cat /etc/crontab"
+
+unset_autostart
+wall "DONE"
