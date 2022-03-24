@@ -6,6 +6,8 @@ LOG_PATH="/var/log/nettest.log"
 ADDRESSES=("3.3.3.1" "3.3.3.10" "4.4.4.1" "4.4.4.100" "5.5.5.1" "5.5.5.100" "192.168.100.100" "192.168.100.200" "192.168.100.254" "172.16.100.100" "172.16.100.254")
 HOSTS=("web-l.int.demo.wsr" "dns.int.demo.wsr" "www.demo.wsr" "internet.demo.wsr")
 
+echo "" > $LOG_PATH
+
 function log() {
 	echo $1
 	printf "$(printf "*%.0s" {1..80})\n" >> $LOG_PATH
